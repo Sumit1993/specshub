@@ -1,0 +1,66 @@
+{
+  "name": "docs-hub",
+  "version": "0.0.1",
+  "description": "CLI for creating and managing per-context AI agent docs hubs. Wraps the docs-hub-template pattern with init, link, verify, unlink, list, status, doctor.",
+  "type": "module",
+  "bin": {
+    "docs-hub": "dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm build"
+  },
+  "keywords": [
+    "docs",
+    "documentation",
+    "ai-agents",
+    "claude-code",
+    "obsidian",
+    "monorepo",
+    "knowledge-base"
+  ],
+  "author": "Sumit Patel",
+  "license": "MIT",
+  "homepage": "https://github.com/Sumit1993/docs-hub",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sumit1993/docs-hub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Sumit1993/docs-hub/issues"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.2.1",
+    "commander": "^12.1.0",
+    "ora": "^8.1.1",
+    "picocolors": "^1.1.1",
+    "tar": "^7.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/tar": "^6.1.13",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}

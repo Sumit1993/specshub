@@ -1,0 +1,411 @@
+import { confirm, input, select } from "@inquirer/prompts";
+import { mkdir, readdir, writeFile } from "node:fs/promises";
+import { basename, dirname, join, resolve } from "node:path";
+import { getRemoteOriginUrl, gitInit, hasGh } from "../git.js";
+import { logger } from "../logger.js";
+import {
+  ARCHIVE_DIR,
+  CROSS_REFS_DIR,
+  type DocsHubMetadata,
+  type HubMetadata,
+  METADATA_SCHEMA,
+  PROJECTS_DIR,
+  absolutePath,
+  codeRepoDocsRoot,
+  exists,
+  hubMetadataPath,
+  hubProjectDocsRoot,
+  metadataPath,
+} from "../paths.js";
+import { run } from "../shell.js";
+
+export type InitMode = "in-repo" | "external";
+export type InitVisibility = "private" | "public" | "local";
+
+export interface InitOptions {
+  /** Which scenario. If absent and interactive, prompts. */
+  mode?: InitMode;
+  /** External mode: hub name (default `<repo>-docs-hub`). */
+  name?: string;
+  /** External mode: hub directory (default sibling to code repo). */
+  dir?: string;
+  /** External mode: visibility. */
+  visibility?: InitVisibility;
+  /** External mode + private/public: GitHub owner. Auto-detected via `gh api user` if absent. */
+  owner?: string;
+  /** Project name (default: basename of code repo). */
+  project?: string;
+  /** Skip the `-docs-hub` suffix suggestion for external hub names. */
+  noSuggest?: boolean;
+  /** Non-interactive: fail rather than prompt. */
+  yes?: boolean;
+  /** Working dir = the code repo. Default = cwd. */
+  codeRepo?: string;
+}
+
+export interface InitResult {
+  mode: InitMode;
+  codeRepo: string;
+  project: string;
+  hubDir: string | null;
+  hubRepoUrl: string | null;
+}
+
+const SUFFIX = "-docs-hub";
+
+export async function init(opts: InitOptions = {}): Promise<InitResult> {
+  const codeRepo = absolutePath(opts.codeRepo ?? process.cwd());
+  if (!(await exists(codeRepo))) {
+    throw new Error(`Code repo path does not exist: ${codeRepo}`);
+  }
+
+  const project = opts.project ?? basename(codeRepo);
+
+  // Refuse to re-init if metadata already present.
+  if (await exists(metadataPath(codeRepo))) {
+    throw new Error(
+      `${metadataPath(codeRepo)} already exists. ` +
+        "This code repo is already docs-hub-initialized. " +
+        "Run `docs-hub link <hub>` to add a hub reference, or remove .docs-hub/metadata.json first.",
+    );
+  }
+
+  // Resolve mode
+  const mode = await resolveMode(opts);
+
+  if (mode === "in-repo") {
+    await initInRepo(codeRepo, project);
+    return { mode, codeRepo, project, hubDir: null, hubRepoUrl: null };
+  }
+
+  // external mode
+  const visibility = await resolveVisibility(opts);
+  const name = await resolveHubName(codeRepo, opts);
+  const hubDir = opts.dir ? absolutePath(opts.dir) : resolve(dirname(codeRepo), name);
+
+  if (await exists(hubDir)) {
+    const entries = await readdir(hubDir);
+    if (entries.length > 0) {
+      throw new Error(`Target hub directory not empty: ${hubDir}`);
+    }
+  }
+
+  const hubRepoUrl = await initExternal({
+    codeRepo,
+    project,
+    name,
+    hubDir,
+    visibility,
+    owner: opts.owner,
+  });
+
+  return { mode, codeRepo, project, hubDir, hubRepoUrl };
+}
+
+// ─── mode resolution ─────────────────────────────────────────────────────
+
+async function resolveMode(opts: InitOptions): Promise<InitMode> {
+  if (opts.mode) return opts.mode;
+  if (opts.yes) return "in-repo"; // safest default for non-interactive
+  return (await select<InitMode>({
+    message: "Where should the docs live?",
+    choices: [
+      {
+        name: "In this repo  (recommended for single-repo / OSS / personal projects)",
+        value: "in-repo",
+      },
+      {
+        name: "External hub  (recommended for multi-repo / privacy-from-code / strategy material)",
+        value: "external",
+      },
+    ],
+    default: "in-repo",
+  })) as InitMode;
+}
+
+async function resolveVisibility(opts: InitOptions): Promise<InitVisibility> {
+  if (opts.visibility) return opts.visibility;
+  if (opts.yes) return "local";
+  const v = (await select<InitVisibility>({
+    message: "Hub visibility?",
+    choices: [
+      {
+        name: "private  (GitHub repo, recommended for strategy/customer/work content)",
+        value: "private",
+      },
+      { name: "public   (GitHub repo, for OSS design docs)", value: "public" },
+      { name: "local    (no GitHub repo — local-only)", value: "local" },
+    ],
+    default: "private",
+  })) as InitVisibility;
+  return v;
+}
+
+async function resolveHubName(codeRepo: string, opts: InitOptions): Promise<string> {
+  if (opts.name) return opts.name;
+  const defaultName = `${basename(codeRepo)}-docs-hub`;
+  if (opts.yes) return defaultName;
+  const raw = await input({
+    message: "Hub name?",
+    default: defaultName,
+    validate: (v) => (v.trim().length > 0 ? true : "Required"),
+  });
+  return maybeSuggestSuffix(raw.trim(), opts);
+}
+
+async function maybeSuggestSuffix(name: string, opts: InitOptions): Promise<string> {
+  if (opts.noSuggest || opts.yes) return name;
+  if (name.endsWith(SUFFIX)) return name;
+  const suggested = `${name}${SUFFIX}`;
+  const choice = await select({
+    message: `Convention is to suffix hub names with '${SUFFIX}'. What would you like?`,
+    choices: [
+      { name: `use suggested: ${suggested}`, value: "suggested" as const },
+      { name: `keep as-is:    ${name}`, value: "asis" as const },
+    ],
+    default: "suggested",
+  });
+  return choice === "suggested" ? suggested : name;
+}
+
+// ─── in-repo init ────────────────────────────────────────────────────────
+
+async function initInRepo(codeRepo: string, project: string): Promise<void> {
+  const docsRoot = codeRepoDocsRoot(codeRepo);
+  await mkdir(docsRoot, { recursive: true });
+
+  const meta: DocsHubMetadata = {
+    schema: METADATA_SCHEMA,
+    mode: "in-repo",
+    project,
+    hub_path: null,
+    hub_repo: null,
+    hub_refs: [],
+    linked_at: nowIso(),
+  };
+  await writeFile(metadataPath(codeRepo), `${JSON.stringify(meta, null, 2)}\n`);
+  logger.success(`Wrote ${metadataPath(codeRepo)}`);
+
+  logger.blank();
+  logger.success(`Initialized in-repo docs-hub for project '${project}'.`);
+  logger.detail(`Docs root: ${docsRoot}`);
+  logger.detail(`Files like specs/, decisions/, .specify/ are created on demand by SDD skills.`);
+  logger.blank();
+  logger.info("Suggested commit (run yourself; docs-hub never auto-commits):");
+  logger.detail(`  git -C ${codeRepo} add .docs-hub`);
+  logger.detail(`  git -C ${codeRepo} commit -m "feat: docs-hub init (in-repo, project=${project})"`);
+}
+
+// ─── external init ───────────────────────────────────────────────────────
+
+interface ExternalArgs {
+  codeRepo: string;
+  project: string;
+  name: string;
+  hubDir: string;
+  visibility: InitVisibility;
+  owner: string | undefined;
+}
+
+/**
+ * Create an external hub at `hubDir`, scaffold its structure, register the
+ * current code repo as the hub's first project (hub-owned storage), and write
+ * the code repo's metadata pointing at the hub.
+ * Returns the hub's git remote URL (or local path for local-only mode).
+ */
+async function initExternal(args: ExternalArgs): Promise<string> {
+  const { codeRepo, project, name, hubDir, visibility } = args;
+
+  // 1. Create the hub git repo (GitHub or local)
+  let hubRepoUrl: string;
+  if (visibility === "local") {
+    await mkdir(hubDir, { recursive: true });
+    await gitInit(hubDir);
+    hubRepoUrl = hubDir; // no remote; use local path as identifier
+    logger.success(`Initialized local hub at ${hubDir}`);
+  } else {
+    if (!(await hasGh())) {
+      throw new Error(
+        `Visibility '${visibility}' requires the GitHub CLI ('gh'). ` +
+          "Install from https://cli.github.com/ or pick --visibility local.",
+      );
+    }
+    const owner = args.owner ?? (await detectGhOwner());
+    if (!owner) {
+      throw new Error("Could not detect GitHub owner via `gh api user`. Pass --owner <user-or-org>.");
+    }
+    const fullName = `${owner}/${name}`;
+    if (basename(hubDir) !== name) {
+      throw new Error(
+        `Hub dir basename must match hub name for GitHub-backed init. ` +
+          `Got basename='${basename(hubDir)}' but name='${name}'.`,
+      );
+    }
+    await mkdir(dirname(hubDir), { recursive: true });
+    logger.step(`Creating ${visibility} GitHub repo ${fullName}…`);
+    await run(
+      "gh",
+      ["repo", "create", fullName, `--${visibility}`, "--clone"],
+      { cwd: dirname(hubDir), throwOnError: true, inherit: true },
+    );
+    logger.success(`Cloned to ${hubDir}`);
+    hubRepoUrl = (await getRemoteOriginUrl(hubDir)) ?? `https://github.com/${fullName}.git`;
+  }
+
+  // 2. Scaffold the hub structure
+  await scaffoldHubStructure(hubDir, name);
+  logger.success(`Scaffolded hub structure at ${hubDir}`);
+
+  // 3. Write the hub's top-level metadata (with first project entry)
+  const hubMeta: HubMetadata = {
+    schema: METADATA_SCHEMA,
+    name,
+    created_at: nowIso(),
+    projects: [
+      {
+        name: project,
+        storage: "hub-owned",
+        code_repo_path: codeRepo,
+        code_repo_url: (await getRemoteOriginUrl(codeRepo)) ?? codeRepo,
+      },
+    ],
+  };
+  await writeFile(hubMetadataPath(hubDir), `${JSON.stringify(hubMeta, null, 2)}\n`);
+  logger.success(`Wrote ${hubMetadataPath(hubDir)}`);
+
+  // 4. Create the empty hub-owned project stub (just the dir; no metadata.json per project)
+  await mkdir(hubProjectDocsRoot(hubDir, project), { recursive: true });
+  logger.detail(`Created empty project stub: projects/${project}/.docs-hub/`);
+
+  // 5. Write the code repo's metadata pointing at the hub
+  const codeMeta: DocsHubMetadata = {
+    schema: METADATA_SCHEMA,
+    mode: "external",
+    project,
+    hub_path: hubDir,
+    hub_repo: hubRepoUrl,
+    hub_refs: [],
+    linked_at: nowIso(),
+  };
+  await mkdir(dirname(metadataPath(codeRepo)), { recursive: true });
+  await writeFile(metadataPath(codeRepo), `${JSON.stringify(codeMeta, null, 2)}\n`);
+  logger.success(`Wrote ${metadataPath(codeRepo)}`);
+
+  logger.blank();
+  logger.success(`Initialized external hub '${name}' with first project '${project}'.`);
+  logger.blank();
+  logger.info("Suggested commits (run yourself; docs-hub never auto-commits):");
+  logger.detail(`  git -C ${codeRepo} add .docs-hub`);
+  logger.detail(`  git -C ${codeRepo} commit -m "feat: docs-hub init (external, hub=${name})"`);
+  logger.blank();
+  logger.detail(`  git -C ${hubDir} add .`);
+  logger.detail(`  git -C ${hubDir} commit -m "feat: initial hub scaffolding for '${name}'"`);
+  if (visibility !== "local") {
+    logger.detail(`  git -C ${hubDir} push -u origin main`);
+  }
+
+  return hubRepoUrl;
+}
+
+async function scaffoldHubStructure(hubDir: string, hubName: string): Promise<void> {
+  // IDENTITY.md placeholder
+  await writeFile(
+    join(hubDir, "IDENTITY.md"),
+    `# ${hubName} — IDENTITY
+
+> Context owner, mission, voice conventions, and audiences for this docs hub.
+> Read this first if you're new to the hub.
+
+## Context owner
+TODO
+
+## Mission
+TODO
+
+## Voice & conventions
+TODO
+
+## Audiences
+TODO
+`,
+  );
+
+  // MAP.md placeholder
+  await writeFile(
+    join(hubDir, "MAP.md"),
+    `# ${hubName} — MAP
+
+> The project graph. Lists every project in this hub and the cross-cutting
+> relationships between them.
+
+## Projects
+
+See \`metadata.json\` at the hub root for the authoritative list of projects.
+
+## Cross-references
+
+See \`cross-refs/\` for documented relationships between projects.
+
+## Diagram
+TODO (Mermaid recommended)
+`,
+  );
+
+  // cross-refs/ with a README explaining the convention
+  await mkdir(join(hubDir, CROSS_REFS_DIR), { recursive: true });
+  await writeFile(
+    join(hubDir, CROSS_REFS_DIR, "README.md"),
+    `# Cross-references
+
+Each file in this directory documents a relationship between two or more
+projects in this hub. Cross-refs are how the hub captures context that doesn't
+belong to any single project.
+
+## Naming convention
+
+\`<project-a>-to-<project-b>.md\`  (or three-way: \`<a>-<b>-<c>.md\`)
+
+## Template
+
+\`\`\`markdown
+# <project-a> ↔ <project-b>: <relationship name>
+
+> One-sentence summary of the relationship.
+
+## Decisions locked
+
+- Decision 1...
+
+## Failure modes
+
+- ...
+
+## Update protocol
+
+- ...
+\`\`\`
+`,
+  );
+
+  // archive/ with a .gitkeep
+  await mkdir(join(hubDir, ARCHIVE_DIR), { recursive: true });
+  await writeFile(join(hubDir, ARCHIVE_DIR, ".gitkeep"), "");
+
+  // projects/ with a .gitkeep (will fill in via init's project creation below)
+  await mkdir(join(hubDir, PROJECTS_DIR), { recursive: true });
+  await writeFile(join(hubDir, PROJECTS_DIR, ".gitkeep"), "");
+}
+
+// ─── utilities ───────────────────────────────────────────────────────────
+
+async function detectGhOwner(): Promise<string | null> {
+  const r = await run("gh", ["api", "user", "--jq", ".login"]);
+  return r.code === 0 ? r.stdout.trim() : null;
+}
+
+function nowIso(): string {
+  return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
+// confirm import kept for potential future use; suppress unused warning
+void confirm;
