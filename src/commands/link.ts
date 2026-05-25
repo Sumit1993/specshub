@@ -43,10 +43,10 @@ export interface LinkResult {
  * Link a code repo to an existing hub.
  *
  * Auto-detection of storage based on whether the code repo has populated
- * `.docs-hub/`:
+ * `.specshub/`:
  *   - empty/absent  → storage="hub-owned" (scenario 2): code repo has no in-repo docs;
  *                     the hub owns them. We create the empty stub at
- *                     `<hub>/projects/<project>/.docs-hub/`.
+ *                     `<hub>/projects/<project>/.specshub/`.
  *   - has content   → storage="in-repo" (scenario 4 / hybrid): code repo already has
  *                     in-repo docs; the hub just registers awareness via metadata.
  *                     No `<hub>/projects/<project>/` directory is created.
@@ -68,9 +68,9 @@ export async function link(hubPathInput: string, opts: LinkOptions = {}): Promis
   }
   if (!(await looksLikeHub(hub))) {
     throw new Error(
-      `Not a docs-hub: ${hub}\n` +
+      `Not a specshub: ${hub}\n` +
         "  (a hub directory has projects/ and cross-refs/ subdirs)\n" +
-        "  Run `docs-hub init --external` to create one.",
+        "  Run `specshub init --external` to create one.",
     );
   }
 
@@ -79,9 +79,9 @@ export async function link(hubPathInput: string, opts: LinkOptions = {}): Promis
   //   1. Existing metadata.json declares mode=in-repo → storage=in-repo (hybrid)
   //   2. Existing metadata.json declares mode=external → storage=hub-owned
   //      (the existing external linkage gets superseded by the new one)
-  //   3. No metadata.json + content in .docs-hub/ → storage=in-repo (the user
+  //   3. No metadata.json + content in .specshub/ → storage=in-repo (the user
   //      created docs but didn't run init — treat as scenario-4 onboarding)
-  //   4. No metadata.json + empty .docs-hub/ → storage=hub-owned (fresh link;
+  //   4. No metadata.json + empty .specshub/ → storage=hub-owned (fresh link;
   //      the hub will own the docs)
   const docsRoot = codeRepoDocsRoot(codeRepo);
   const docsRootContent = await listContentOrEmpty(docsRoot);
@@ -98,8 +98,8 @@ export async function link(hubPathInput: string, opts: LinkOptions = {}): Promis
     const hasInRepoContent = docsRootContent.filter((n) => n !== "metadata.json").length > 0;
     detectedStorage = hasInRepoContent ? "in-repo" : "hub-owned";
     detectionReason = hasInRepoContent
-      ? ".docs-hub/ contains content (no metadata yet)"
-      : "no .docs-hub/ content found";
+      ? ".specshub/ contains content (no metadata yet)"
+      : "no .specshub/ content found";
   }
   const storage: Storage = opts.storage ?? detectedStorage;
   if (opts.storage && opts.storage !== detectedStorage) {
@@ -128,7 +128,7 @@ export async function link(hubPathInput: string, opts: LinkOptions = {}): Promis
   // ─── create hub-side stub dir for hub-owned storage ────────────────────
   if (storage === "hub-owned") {
     await mkdir(hubProjectDocsRoot(hub, project), { recursive: true });
-    logger.success(`Created empty stub: projects/${project}/.docs-hub/`);
+    logger.success(`Created empty stub: projects/${project}/.specshub/`);
   }
 
   // ─── write/update code-repo-side metadata ──────────────────────────────
@@ -143,9 +143,9 @@ export async function link(hubPathInput: string, opts: LinkOptions = {}): Promis
   logger.blank();
   logger.success(`Linked code repo '${project}' to hub '${hubMeta.name}'.`);
   logger.blank();
-  logger.info("Suggested commits (run yourself; docs-hub never auto-commits):");
-  logger.detail(`  git -C ${codeRepo} add .docs-hub`);
-  logger.detail(`  git -C ${codeRepo} commit -m "feat: link to docs-hub '${hubMeta.name}' (project=${project}, storage=${storage})"`);
+  logger.info("Suggested commits (run yourself; specshub never auto-commits):");
+  logger.detail(`  git -C ${codeRepo} add .specshub`);
+  logger.detail(`  git -C ${codeRepo} commit -m "feat: link to specshub '${hubMeta.name}' (project=${project}, storage=${storage})"`);
   logger.blank();
   logger.detail(`  git -C ${hub} add metadata.json${storage === "hub-owned" ? ` projects/${project}/` : ""}`);
   logger.detail(`  git -C ${hub} commit -m "register project '${project}' (storage=${storage})"`);
@@ -227,7 +227,7 @@ async function upsertCodeRepoMetadata(
   let meta: DocsHubMetadata;
 
   if (!existing) {
-    // Fresh link: code repo has never been docs-hub-initialized.
+    // Fresh link: code repo has never been specshub-initialized.
     if (args.storage === "in-repo") {
       // This shouldn't happen — if code repo has in-repo content, it should have been
       // init'd already. Defensive: bootstrap as if init --in-repo had run.

@@ -33,7 +33,7 @@ export interface UnlinkResult {
 }
 
 /**
- * Remove a docs-hub linkage. Updates BOTH the code-repo metadata and the
+ * Remove a specshub linkage. Updates BOTH the code-repo metadata and the
  * hub-side registry. Never auto-executes git operations — only suggests
  * commits in both repos.
  */
@@ -42,7 +42,7 @@ export async function unlink(opts: UnlinkOptions = {}): Promise<UnlinkResult> {
   const meta = await readMetadata(codeRepo);
   if (!meta) {
     throw new Error(
-      `No docs-hub metadata found at ${metadataPath(codeRepo)}. Nothing to unlink.`,
+      `No specshub metadata found at ${metadataPath(codeRepo)}. Nothing to unlink.`,
     );
   }
 
@@ -50,7 +50,7 @@ export async function unlink(opts: UnlinkOptions = {}): Promise<UnlinkResult> {
   if (!targetHub) {
     throw new Error(
       `No hub to unlink. mode=${meta.mode}, hub_refs.length=${meta.hub_refs.length}. ` +
-        `To remove docs-hub from this repo entirely, delete ${metadataPath(codeRepo)}.`,
+        `To remove specshub from this repo entirely, delete ${metadataPath(codeRepo)}.`,
     );
   }
 
@@ -121,8 +121,8 @@ export async function unlink(opts: UnlinkOptions = {}): Promise<UnlinkResult> {
   logger.success(`Unlinked '${meta.project}' from hub at ${targetHub}.`);
   logger.blank();
   logger.info("Suggested commits (run yourself):");
-  logger.detail(`  git -C ${codeRepo} add .docs-hub`);
-  logger.detail(`  git -C ${codeRepo} commit -m "chore: unlink from docs-hub at ${targetHub}"`);
+  logger.detail(`  git -C ${codeRepo} add .specshub`);
+  logger.detail(`  git -C ${codeRepo} commit -m "chore: unlink from specshub at ${targetHub}"`);
   logger.blank();
   logger.detail(
     `  git -C ${targetHub} add metadata.json${hubSideDeleted ? ` projects/${meta.project}` : ""}`,

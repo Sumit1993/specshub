@@ -1,6 +1,6 @@
 # Attributions
 
-`docs-hub` builds on the work of two open-source projects. This file lists
+`specshub` builds on the work of two open-source projects. This file lists
 sources, what we adapted, what we depend on at runtime, and how attribution
 is preserved.
 
@@ -14,7 +14,7 @@ is preserved.
   `specs/<feature>/{spec,plan,tasks}.md`), and the structure of each phase's
   artifact. Our `plugin/skills/{constitution,specify,clarify,plan,tasks,analyze,implement}/SKILL.md`
   files are inspired by spec-kit's command bodies but **hand-authored to fit
-  docs-hub's three-scenario architecture** (in-repo / external / hybrid) and
+  specshub's three-scenario architecture** (in-repo / external / hybrid) and
   to integrate with our path-resolution prologue.
 - **What was NOT taken:** spec-kit's Python CLI, its template engine, its
   per-agent installer, its check scripts. We don't take a runtime dependency
@@ -24,15 +24,15 @@ is preserved.
   spec-kit and pointing here), plus a credit in [`README.md`](README.md).
 - **Sync cadence:** none. We adopted spec-kit's conventions at the moment of
   authorship once and maintain the SKILL.md files ourselves going forward.
-  See [`.docs-hub/decisions/0002-hand-authored-skills.md`](.docs-hub/decisions/0002-hand-authored-skills.md).
+  See [`.specshub/decisions/0002-hand-authored-skills.md`](.specshub/decisions/0002-hand-authored-skills.md).
 
 ## vercel-labs/skills  *(runtime dependency for skill install)*
 
 - **Source:** https://github.com/vercel-labs/skills
 - **License:** Apache License 2.0
 - **How we use it:** at runtime, via direct user invocation. Users install
-  the docs-hub skill bundle with `npx skills add github:Sumit1993/docs-hub`
-  (and remove with `npx skills remove github:Sumit1993/docs-hub`). docs-hub
+  the specshub skill bundle with `npx skills add github:Sumit1993/specshub`
+  (and remove with `npx skills remove github:Sumit1993/specshub`). specshub
   itself does not wrap or shell out to `npx skills` — vercel-labs/skills owns
   the per-agent installation matrix end-to-end (Claude Code, Codex CLI,
   OpenCode, Cursor, Gemini CLI, and others). We don't ship the per-agent
@@ -43,7 +43,7 @@ is preserved.
   notices and any NOTICE file when we DO redistribute their modified source.
   We don't redistribute their source; we invoke their published CLI via npx.
   This file documents the dependency for transparency.
-- See [`.docs-hub/decisions/0003-delegate-install-to-vercel-labs-skills.md`](.docs-hub/decisions/0003-delegate-install-to-vercel-labs-skills.md).
+- See [`.specshub/decisions/0003-delegate-install-to-vercel-labs-skills.md`](.specshub/decisions/0003-delegate-install-to-vercel-labs-skills.md).
 
 ---
 

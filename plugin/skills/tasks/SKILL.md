@@ -12,16 +12,16 @@ disable-model-invocation: true
 
 # /tasks — generate ordered, actionable tasks from a plan
 
-## Path resolution (added by docs-hub)
+## Path resolution (added by specshub)
 
 Before reading or writing any file referenced as `.specify/...`, `specs/...`, or
 similar relative path in this skill, resolve the docs root for the current repo:
 
-1. Find the nearest `.docs-hub/metadata.json` walking up from your current dir.
+1. Find the nearest `.specshub/metadata.json` walking up from your current dir.
 2. Parse it. Note `mode`, `project`, `hub_path`.
 3. Compute docs root:
-   - `mode == "in-repo"` → docs-root = `<code-repo>/.docs-hub/`
-   - `mode == "external"` → docs-root = `<hub_path>/projects/<project>/.docs-hub/`
+   - `mode == "in-repo"` → docs-root = `<code-repo>/.specshub/`
+   - `mode == "external"` → docs-root = `<hub_path>/projects/<project>/.specshub/`
 4. Treat `specs/<feature>/` references as `<docs-root>/specs/<feature>/`.
 5. Suggest commits, never auto-execute.
 
@@ -64,7 +64,7 @@ After `/plan` has produced `plan.md`. Before `/implement` can run anything.
 9. **Suggest the commit**:
    ```bash
    # mode=external example:
-   git -C <hub_path> add projects/<project>/.docs-hub/specs/<NNN>-<name>/tasks.md
+   git -C <hub_path> add projects/<project>/.specshub/specs/<NNN>-<name>/tasks.md
    git -C <hub_path> commit -m "tasks: <NNN>-<name> for <project>"
    ```
 

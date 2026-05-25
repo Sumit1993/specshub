@@ -1,13 +1,13 @@
 {
-  "name": "docs-hub",
-  "version": "0.0.1",
+  "name": "specshub",
+  "version": "0.0.2",
   "description": "Per-context AI agent docs hubs with spec-driven workflow skills",
   "author": "Sumit Patel",
   "license": "MIT",
-  "homepage": "https://github.com/Sumit1993/docs-hub",
-  "repository": "https://github.com/Sumit1993/docs-hub",
+  "homepage": "https://github.com/Sumit1993/specshub",
+  "repository": "https://github.com/Sumit1993/specshub",
   "skills": [
-    { "name": "docs-hub", "path": "skills/docs-hub" },
+    { "name": "specshub", "path": "skills/specshub" },
     { "name": "constitution", "path": "skills/constitution" },
     { "name": "specify", "path": "skills/specify" },
     { "name": "clarify", "path": "skills/clarify" },

@@ -1,7 +1,7 @@
 {
-  "schema": "docs-hub.v1",
+  "schema": "specshub.v1",
   "mode": "in-repo",
-  "project": "docs-hub",
+  "project": "specshub",
   "hub_path": null,
   "hub_repo": null,
   "hub_refs": [],

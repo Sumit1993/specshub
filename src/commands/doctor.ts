@@ -119,8 +119,8 @@ export async function doctor(opts: DoctorOptions = {}): Promise<DoctorResult> {
   if (passed) logger.success("All required checks passed.");
   else logger.error("Some required checks failed.");
 
-  const me = await which("docs-hub");
-  if (me) logger.detail("(docs-hub itself is on PATH)");
+  const me = await which("specshub");
+  if (me) logger.detail("(specshub itself is on PATH)");
 
   return { passed, checks };
 }
@@ -137,7 +137,7 @@ async function checkNpxSkills(): Promise<DoctorCheck> {
   return {
     name: "npx skills",
     ok: false,
-    detail: `not reachable (exit ${r.code}). Required for \`npx skills add github:Sumit1993/docs-hub\`. Network may be blocked or npm misconfigured.`,
+    detail: `not reachable (exit ${r.code}). Required for \`npx skills add github:Sumit1993/specshub\`. Network may be blocked or npm misconfigured.`,
     optional: true, // mark optional so doctor doesn't fail outright — install surfaces the issue when actually invoked
   };
 }

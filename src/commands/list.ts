@@ -32,13 +32,13 @@ export interface ListResult {
 /**
  * List the projects this hub knows about. Reads the top-level `metadata.json` registry.
  *
- * `docs-hub status` is the per-machine link-health checker; `list` is just the
+ * `specshub status` is the per-machine link-health checker; `list` is just the
  * hub-side enumeration.
  */
 export async function list(opts: ListOptions = {}): Promise<ListResult> {
   const hub = absolutePath(opts.hub ?? process.cwd());
   if (!(await looksLikeHub(hub))) {
-    throw new Error(`Not a docs-hub: ${hub}`);
+    throw new Error(`Not a specshub: ${hub}`);
   }
 
   const projects: ProjectInfo[] = [];
@@ -86,7 +86,7 @@ export async function list(opts: ListOptions = {}): Promise<ListResult> {
   logger.blank();
 
   if (projects.length === 0) {
-    logger.detail("(no projects yet — run `docs-hub link <hub-path>` from a code repo to add one)");
+    logger.detail("(no projects yet — run `specshub link <hub-path>` from a code repo to add one)");
     return { hub, projects };
   }
 

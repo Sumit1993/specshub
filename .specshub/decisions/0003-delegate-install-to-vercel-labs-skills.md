@@ -22,7 +22,7 @@ This worked but had two structural problems:
 2. **The shim payload at *link* time was the wrong layer.** Each linked code
    repo got its own per-agent shim files, duplicated across all N linked
    repos for the same user. The per-machine knowledge "I want Cursor to know
-   about docs-hub" is naturally per-machine, not per-repo.
+   about specshub" is naturally per-machine, not per-repo.
 
 The no-symlinks decision ([ADR 0001](./0001-no-symlinks.md)) created room to
 move skill installation to the right layer in the same architectural wave.
@@ -30,12 +30,12 @@ move skill installation to the right layer in the same architectural wave.
 ## Decision
 
 **Skill installation is delegated entirely to vercel-labs/skills via `npx
-skills`.** There is no `docs-hub setup` or `docs-hub uninstall` wrapper —
+skills`.** There is no `specshub setup` or `specshub uninstall` wrapper —
 users invoke the upstream CLI directly:
 
 ```
-npx skills add github:Sumit1993/docs-hub
-npx skills remove github:Sumit1993/docs-hub
+npx skills add github:Sumit1993/specshub
+npx skills remove github:Sumit1993/specshub
 ```
 
 vercel-labs/skills owns:
@@ -44,11 +44,11 @@ vercel-labs/skills owns:
 - The actual file writes for each agent
 - The install/remove UX
 
-docs-hub owns:
+specshub owns:
 - All hub-management commands (`init`, `link`, `verify`, `list`, `status`,
   `doctor`, `unlink`)
 - All metadata authoring (code-repo and hub-side `metadata.json`) — this is
-  the only file docs-hub writes to a code repo (see
+  the only file specshub writes to a code repo (see
   [ADR 0005](./0005-drop-per-repo-preamble.md))
 - Authoring the bundled skills under `plugin/skills/`
 
@@ -68,17 +68,17 @@ docs-hub owns:
    grilling).
 
 4. **User-level scope is the right home.** The earlier per-link shim writes
-   were duplicative; the "I want my agents to know docs-hub" decision is a
+   were duplicative; the "I want my agents to know specshub" decision is a
    per-machine one. `npx skills add ...` runs once per machine; the user's
    agents pick up the skills wherever they go.
 
 ## Consequences
 
-- **No custom per-agent installation code in docs-hub** (vercel-labs/skills
+- **No custom per-agent installation code in specshub** (vercel-labs/skills
   owns this).
 - **No per-link shim writes** (replaced by user-level skills).
 - **Per-link behavior is simpler.** `link` writes only: hub-side metadata
-  update + code-repo `.docs-hub/metadata.json`. No shim selection prompt;
+  update + code-repo `.specshub/metadata.json`. No shim selection prompt;
   no `shims` field in metadata; no AGENTS.md / CLAUDE.md touching (see
   [ADR 0005](./0005-drop-per-repo-preamble.md)).
 - **Install requires network** (to fetch vercel-labs/skills via npx).
@@ -89,13 +89,13 @@ docs-hub owns:
 
 ```bash
 # Install
-npx skills add github:Sumit1993/docs-hub
+npx skills add github:Sumit1993/specshub
 
 # Remove
-npx skills remove github:Sumit1993/docs-hub
+npx skills remove github:Sumit1993/specshub
 ```
 
-No wrapper code in docs-hub. The matrix of where to write per agent, XDG
+No wrapper code in specshub. The matrix of where to write per agent, XDG
 handling, etc. is entirely vercel-labs/skills's problem.
 
 ## Counter-considerations

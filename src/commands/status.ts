@@ -78,7 +78,7 @@ async function statusOne(repo: string): Promise<RepoStatus> {
     return rs;
   }
   if (!meta) {
-    rs.metadata = { ok: false, detail: "missing .docs-hub/metadata.json" };
+    rs.metadata = { ok: false, detail: "missing .specshub/metadata.json" };
     return rs;
   }
   rs.metadata = {

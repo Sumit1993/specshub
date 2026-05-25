@@ -2,8 +2,8 @@
 name: specify
 description: |
   Define what you want to build — author a feature specification with user
-  stories, requirements, success criteria. Writes to the docs-hub-managed
-  specs/ directory at the appropriate path based on the repo's docs-hub mode.
+  stories, requirements, success criteria. Writes to the specshub-managed
+  specs/ directory at the appropriate path based on the repo's specshub mode.
   Adapted from github/spec-kit (MIT) — see ATTRIBUTION.md.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 disable-model-invocation: true
@@ -13,20 +13,20 @@ disable-model-invocation: true
 
 # /specify — author a feature specification
 
-## Path resolution (added by docs-hub)
+## Path resolution (added by specshub)
 
 Before reading or writing any file referenced as `.specify/...`, `specs/...`, or
 similar relative path in this skill, resolve the docs root for the current repo:
 
-1. Find the nearest `.docs-hub/metadata.json` walking up from your current dir.
-   If absent, abort: tell the user to run `docs-hub init` first.
+1. Find the nearest `.specshub/metadata.json` walking up from your current dir.
+   If absent, abort: tell the user to run `specshub init` first.
 2. Parse it. Note `mode`, `project`, `hub_path`.
 3. Compute docs root:
-   - If `mode == "in-repo"`: docs-root = `<code-repo>/.docs-hub/`
-   - If `mode == "external"`: docs-root = `<hub_path>/projects/<project>/.docs-hub/`
+   - If `mode == "in-repo"`: docs-root = `<code-repo>/.specshub/`
+   - If `mode == "external"`: docs-root = `<hub_path>/projects/<project>/.specshub/`
 4. Everywhere this skill references `specs/<feature>/`, treat it as
    `<docs-root>/specs/<feature>/`.
-5. After writing, suggest the commit per the `docs-hub` skill's commit-hygiene
+5. After writing, suggest the commit per the `specshub` skill's commit-hygiene
    rules — NEVER auto-execute.
 
 ---
@@ -61,7 +61,7 @@ to fully document an existing one before planning implementation.
 6. **Suggest the commit** for the docs hub side:
    ```bash
    # mode=external example:
-   git -C <hub_path> add projects/<project>/.docs-hub/specs/<NNN>-<name>/
+   git -C <hub_path> add projects/<project>/.specshub/specs/<NNN>-<name>/
    git -C <hub_path> commit -m "spec: <NNN>-<name> for <project>"
    ```
 

@@ -78,7 +78,7 @@ export async function verify(opts: VerifyOptions = {}): Promise<VerifyResult> {
       ok: false,
       detail: "missing — hub may be pre-v5",
     });
-    logger.warn("metadata.json MISSING at hub root (run `docs-hub link` from a code repo to bootstrap it)");
+    logger.warn("metadata.json MISSING at hub root (run `specshub link` from a code repo to bootstrap it)");
   }
 
   // Zone.Identifier check (Windows file-system metadata leaked into Linux)
@@ -141,22 +141,22 @@ async function verifyCodeRepoOnly(
   result: VerifyResult,
 ): Promise<VerifyResult> {
   logger.info("=== Code repo (not a hub) ===");
-  logger.detail(`${repo} has .docs-hub/metadata.json with mode=${meta.mode}.`);
+  logger.detail(`${repo} has .specshub/metadata.json with mode=${meta.mode}.`);
   if (meta.mode === "external") {
     logger.detail(
-      `Tip: this is an external-mode code repo. To verify the hub it links to, run \`docs-hub verify --hub ${meta.hub_path}\`.`,
+      `Tip: this is an external-mode code repo. To verify the hub it links to, run \`specshub verify --hub ${meta.hub_path}\`.`,
     );
   } else {
-    logger.detail("`docs-hub verify --hub` expects a hub root; pivoting to repo-side checks.");
-    logger.detail("Tip: `docs-hub status <repo...>` is the canonical per-machine check for code repos.");
+    logger.detail("`specshub verify --hub` expects a hub root; pivoting to repo-side checks.");
+    logger.detail("Tip: `specshub status <repo...>` is the canonical per-machine check for code repos.");
   }
   logger.blank();
 
   for (const path of [repo, ...extraRepos.map(absolutePath)]) {
     const m = path === repo ? meta : await readMetadata(path);
     if (!m) {
-      result.linkedRepoChecks.push({ repo: path, ok: false, detail: "missing .docs-hub/metadata.json" });
-      logger.error(`${path}: missing .docs-hub/metadata.json`);
+      result.linkedRepoChecks.push({ repo: path, ok: false, detail: "missing .specshub/metadata.json" });
+      logger.error(`${path}: missing .specshub/metadata.json`);
       result.passed = false;
       continue;
     }
@@ -219,7 +219,7 @@ async function verifyProjectsByWalking(hub: string, result: VerifyResult): Promi
   const entries = await readdir(projectsDir, { withFileTypes: true });
   const dirs = entries.filter((e) => e.isDirectory());
   if (dirs.length === 0) {
-    logger.detail("(no projects yet — run `docs-hub link` to add some)");
+    logger.detail("(no projects yet — run `specshub link` to add some)");
     return;
   }
   for (const d of dirs) {
@@ -237,7 +237,7 @@ async function verifyCodeRepo(
 ): Promise<{ repo: string; ok: boolean; detail?: string }> {
   const meta = await readMetadata(repo);
   if (!meta) {
-    return { repo, ok: false, detail: "missing .docs-hub/metadata.json" };
+    return { repo, ok: false, detail: "missing .specshub/metadata.json" };
   }
   // Cross-check: is this repo registered in the hub's metadata?
   if (hubMeta) {

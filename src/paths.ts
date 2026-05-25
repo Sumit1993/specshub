@@ -2,7 +2,7 @@ import { access, readFile, stat } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
 
 // ─── path constants ──────────────────────────────────────────────────────
-export const META_DIR = ".docs-hub";
+export const META_DIR = ".specshub";
 export const META_FILE = "metadata.json";
 export const PROJECTS_DIR = "projects";
 export const CROSS_REFS_DIR = "cross-refs";
@@ -12,15 +12,15 @@ export const CLAUDE_FILE = "CLAUDE.md";
 export const GITIGNORE_FILE = ".gitignore";
 
 // ─── schema ──────────────────────────────────────────────────────────────
-export const METADATA_SCHEMA = "docs-hub.v1";
+export const METADATA_SCHEMA = "specshub.v1";
 
 /**
- * Code-repo-side metadata. Lives at `<code-repo>/.docs-hub/metadata.json`.
+ * Code-repo-side metadata. Lives at `<code-repo>/.specshub/metadata.json`.
  *
  * Two modes:
- *   - "in-repo":  docs live at `<code-repo>/.docs-hub/`. hub_path/hub_repo are null.
+ *   - "in-repo":  docs live at `<code-repo>/.specshub/`. hub_path/hub_repo are null.
  *                 Hybrid mode = in-repo + non-empty hub_refs[].
- *   - "external": docs live at `<hub_path>/projects/<project>/.docs-hub/`.
+ *   - "external": docs live at `<hub_path>/projects/<project>/.specshub/`.
  *                 hub_path/hub_repo are populated.
  */
 export interface DocsHubMetadata {
@@ -46,7 +46,7 @@ export interface HubRef {
 
 /**
  * Hub-side metadata. Lives at `<hub>/metadata.json` (AT THE ROOT, not nested
- * under .docs-hub/, because the hub repo is entirely docs — no segregation
+ * under .specshub/, because the hub repo is entirely docs — no segregation
  * namespace needed). The registry of all projects this hub knows about.
  */
 export interface HubMetadata {
@@ -59,11 +59,11 @@ export interface HubMetadata {
 export interface HubProject {
   name: string;
   /**
-   * "hub-owned" — docs live at `<hub>/projects/<name>/.docs-hub/` (the hub has
+   * "hub-owned" — docs live at `<hub>/projects/<name>/.specshub/` (the hub has
    * the actual files). Used when the code repo was linked via the scenario-2
    * external-only flow (no in-repo docs at link time).
    *
-   * "in-repo" — docs live at `<code_repo_path>/.docs-hub/` (the code repo owns
+   * "in-repo" — docs live at `<code_repo_path>/.specshub/` (the code repo owns
    * the files; the hub just registers awareness). Used in hybrid mode.
    */
   storage: "hub-owned" | "in-repo";
@@ -91,15 +91,15 @@ export function hubMetadataPath(hubRoot: string): string {
   return join(hubRoot, META_FILE);
 }
 
-/** Hub-owned project's directory (no `.docs-hub/` nesting at THIS level). */
+/** Hub-owned project's directory (no `.specshub/` nesting at THIS level). */
 export function hubProjectPath(hubRoot: string, projectName: string): string {
   return join(hubRoot, PROJECTS_DIR, projectName);
 }
 
 /**
  * Hub-owned project's docs root — where SDD artifacts land for hub-owned
- * projects. The `.docs-hub/` nesting here keeps the structure inside the
- * docs root symmetric with the code-repo-side `.docs-hub/`.
+ * projects. The `.specshub/` nesting here keeps the structure inside the
+ * docs root symmetric with the code-repo-side `.specshub/`.
  */
 export function hubProjectDocsRoot(hubRoot: string, projectName: string): string {
   return join(hubProjectPath(hubRoot, projectName), META_DIR);
@@ -108,7 +108,7 @@ export function hubProjectDocsRoot(hubRoot: string, projectName: string): string
 // ─── reading ─────────────────────────────────────────────────────────────
 
 /**
- * Read and parse a code repo's docs-hub metadata file, if present.
+ * Read and parse a code repo's specshub metadata file, if present.
  * Returns null if the file doesn't exist. Throws if the schema is unknown.
  */
 export async function readMetadata(codeRepo: string): Promise<DocsHubMetadata | null> {
@@ -124,8 +124,8 @@ export async function readMetadata(codeRepo: string): Promise<DocsHubMetadata | 
   const schema = String(parsed.schema ?? "");
   if (schema !== METADATA_SCHEMA) {
     throw new Error(
-      `Unknown docs-hub metadata schema at ${path}: ${schema || "(missing)"}. ` +
-        `Expected ${METADATA_SCHEMA}. Delete the file and run \`docs-hub init\` or \`docs-hub link\` to recreate.`,
+      `Unknown specshub metadata schema at ${path}: ${schema || "(missing)"}. ` +
+        `Expected ${METADATA_SCHEMA}. Delete the file and run \`specshub init\` or \`specshub link\` to recreate.`,
     );
   }
   return parsed as unknown as DocsHubMetadata;
@@ -150,7 +150,7 @@ export async function readHubMetadata(hubRoot: string): Promise<HubMetadata | nu
 // ─── structural checks ──────────────────────────────────────────────────
 
 /**
- * True iff `path` looks like a docs-hub root — has the structural directories
+ * True iff `path` looks like a specshub root — has the structural directories
  * we expect (projects/ + cross-refs/).
  */
 export async function looksLikeHub(path: string): Promise<boolean> {

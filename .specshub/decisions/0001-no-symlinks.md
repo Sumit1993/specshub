@@ -5,7 +5,7 @@
 
 ## Context
 
-An early design iteration prototyped docs-hub by symlinking a directory inside
+An early design iteration prototyped specshub by symlinking a directory inside
 each linked code repo to a project slot inside an external hub repo. The
 symlink gave humans, agents, and IDEs a stable path (`<code-repo>/<docs-dir>/`)
 that resolved into the hub's storage. The hub was the source of truth; the
@@ -23,7 +23,7 @@ Three problems surfaced before publication:
 
 2. **Every dominant SDD framework (spec-kit, BMad, Kiro, OpenSpec, Agent-OS)
    puts per-feature specs in the code repo as real files, committed to the
-   code repo's git.** Adopting a different convention would put docs-hub at
+   code repo's git.** Adopting a different convention would put specshub at
    odds with the dominant standard. Spec-kit's [#1140 community discussion](https://github.com/github/spec-kit/issues/1140)
    converges on "commit specs alongside code diffs"; doing anything else
    fights muscle memory.
@@ -36,14 +36,14 @@ Three problems surfaced before publication:
 
 ## Decision
 
-**v0.0.1 ships without symlinks.** The docs-hub directory structure:
+**v0.0.1 ships without symlinks.** The specshub directory structure:
 
-- **In-repo mode** (scenario 1): `.docs-hub/` is a **real directory** in the
+- **In-repo mode** (scenario 1): `.specshub/` is a **real directory** in the
   code repo, committed to the code repo's own git. Cross-machine sharing
   happens through the code repo's git history, like any other tracked file.
 - **External mode** (scenario 2): docs live in a separate hub repo at
-  `<hub>/projects/<project>/.docs-hub/`. The code repo contains only
-  `.docs-hub/metadata.json` (small, tracked) pointing at the hub. Editor UI
+  `<hub>/projects/<project>/.specshub/`. The code repo contains only
+  `.specshub/metadata.json` (small, tracked) pointing at the hub. Editor UI
   in the code repo doesn't see the hub's files — but that's expected; the
   user opens the hub directly (or via multi-root workspace) when they need
   to edit hub-resident content.
@@ -52,18 +52,18 @@ Three problems surfaced before publication:
   reference its in-repo docs from `cross-refs/`. No file-level linkage —
   purely metadata-mediated.
 
-The `.docs-hub/` directory name is fixed (no configurable `docs_dir`).
+The `.specshub/` directory name is fixed (no configurable `docs_dir`).
 
 ## Why
 
-- **Editor UX works out of the box.** `.docs-hub/` is a real, tracked
+- **Editor UX works out of the box.** `.specshub/` is a real, tracked
   directory. Quick-open, `@`-mention, drag-drop all work.
 - **Cross-machine sharing is git.** No special infrastructure; the code repo's
   own git is the sync mechanism.
 - **Convention matches every dominant SDD tool.** Lower onboarding cost;
-  docs-hub stops being "the weird one."
+  specshub stops being "the weird one."
 - **Eliminates symlink/junction platform code entirely.**
-- **Per-repo `.gitignore` no longer needs entries** for the docs-hub dir
+- **Per-repo `.gitignore` no longer needs entries** for the specshub dir
   (because we want it tracked).
 
 ## Consequences
@@ -78,7 +78,7 @@ The `.docs-hub/` directory name is fixed (no configurable `docs_dir`).
   no `search.exclude` overrides. Tool stays simpler.
 - **No per-machine "re-link to recreate symlink" step.** Cloning a code repo
   gives you the docs (in-repo mode) or just the metadata pointer (external
-  mode); no docs-hub command required to make them accessible.
+  mode); no specshub command required to make them accessible.
 
 ## Alternatives considered (and rejected)
 

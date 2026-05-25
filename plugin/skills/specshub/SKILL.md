@@ -1,31 +1,31 @@
 ---
-name: docs-hub
+name: specshub
 description: |
-  Work with docs-hub artifacts in this repository. Use when you encounter a
-  `.docs-hub/metadata.json` file in the current repo, when you modify any
-  file inside `.docs-hub/`, when you write into a hub's `projects/<name>/`,
-  or when the user invokes `/docs-hub` explicitly. Teaches detection, path
+  Work with specshub artifacts in this repository. Use when you encounter a
+  `.specshub/metadata.json` file in the current repo, when you modify any
+  file inside `.specshub/`, when you write into a hub's `projects/<name>/`,
+  or when the user invokes `/specshub` explicitly. Teaches detection, path
   resolution, read order, commit hygiene, and proactive doc-update suggestions.
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
-# docs-hub: working with this hub
+# specshub: working with this hub
 
-This skill teaches you (the AI agent) how to operate inside a docs-hub
-repository safely and helpfully. docs-hub is a per-context AI agent docs
+This skill teaches you (the AI agent) how to operate inside a specshub
+repository safely and helpfully. specshub is a per-context AI agent docs
 system that supports three deployment modes — in-repo, external, and hybrid.
 
 ## A. Detection
 
-Look for `.docs-hub/metadata.json` in the current dir or walking up to the
+Look for `.specshub/metadata.json` in the current dir or walking up to the
 nearest git repo root.
 
-- **Absent** → this repo is not docs-hub-managed. This skill doesn't apply. Skip.
+- **Absent** → this repo is not specshub-managed. This skill doesn't apply. Skip.
 - **Present** → parse it. Note `mode`, `project`, `hub_path`, `hub_repo`, `hub_refs`.
 
 ```bash
 # Detection idiom:
-test -f .docs-hub/metadata.json && cat .docs-hub/metadata.json | jq .
+test -f .specshub/metadata.json && cat .specshub/metadata.json | jq .
 ```
 
 If you can't run `jq`, use any JSON parser — the structure is documented below.
@@ -36,11 +36,11 @@ Compute the **docs root** based on `mode`:
 
 | `mode` value | Docs root |
 |--------------|-----------|
-| `in-repo`    | `<code-repo>/.docs-hub/` |
-| `external`   | `<hub_path>/projects/<project>/.docs-hub/` |
+| `in-repo`    | `<code-repo>/.specshub/` |
+| `external`   | `<hub_path>/projects/<project>/.specshub/` |
 
 In **hybrid mode** (mode=in-repo with non-empty `hub_refs[]`): docs root is
-`<code-repo>/.docs-hub/` (same as in-repo). Each `hub_ref` is a *cross-cutting*
+`<code-repo>/.specshub/` (same as in-repo). Each `hub_ref` is a *cross-cutting*
 registration with an external hub — the hub knows about this project and may
 reference its in-repo docs from its own `cross-refs/`.
 
@@ -92,20 +92,20 @@ physically lives:
 
 | File path | Commits to |
 |-----------|------------|
-| Anything outside the code repo's `.docs-hub/` | The code repo |
-| Inside code repo's `.docs-hub/` (in-repo or hybrid) | The code repo |
-| Inside hub's `projects/<project>/.docs-hub/` (hub-owned mode) | The hub repo (use `git -C <hub_path> ...`) |
+| Anything outside the code repo's `.specshub/` | The code repo |
+| Inside code repo's `.specshub/` (in-repo or hybrid) | The code repo |
+| Inside hub's `projects/<project>/.specshub/` (hub-owned mode) | The hub repo (use `git -C <hub_path> ...`) |
 | Inside hub's `cross-refs/`, `MAP.md`, `IDENTITY.md`, `archive/` | The hub repo |
 
 ### Suggesting commits for SDD outputs
 
 When the `/specify`, `/plan`, `/tasks` etc. skills write a spec file, it lands
-in whichever `.docs-hub/` is the docs root for the current repo's mode. After
+in whichever `.specshub/` is the docs root for the current repo's mode. After
 writing, suggest the commit in chat — clearly stating which repo:
 
 ```bash
 # example for mode=external, after /specify wrote a spec:
-git -C <hub_path> add projects/<project>/.docs-hub/specs/<feature>/spec.md
+git -C <hub_path> add projects/<project>/.specshub/specs/<feature>/spec.md
 git -C <hub_path> commit -m "spec: <feature> for <project>"
 git -C <hub_path> push   # if the user wants
 ```
@@ -128,11 +128,11 @@ Then **wait for user direction**. Don't author the file unless they say yes.
 
 ## Reference: metadata.json schemas
 
-### Code-repo side (`<code-repo>/.docs-hub/metadata.json`)
+### Code-repo side (`<code-repo>/.specshub/metadata.json`)
 
 ```jsonc
 {
-  "schema": "docs-hub.v1",
+  "schema": "specshub.v1",
   "mode": "in-repo",                      // or "external"
   "project": "my-api",
   "hub_path": null,                       // populated when external OR hub_refs not empty
@@ -146,8 +146,8 @@ Then **wait for user direction**. Don't author the file unless they say yes.
 
 ```jsonc
 {
-  "schema": "docs-hub.v1",
-  "name": "acme-docs-hub",
+  "schema": "specshub.v1",
+  "name": "acme-specshub",
   "created_at": "ISO-8601",
   "projects": [
     {

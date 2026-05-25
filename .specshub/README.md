@@ -1,14 +1,14 @@
-# docs-hub — AI agent docs (in-repo)
+# specshub — AI agent docs (in-repo)
 
-> This is the docs-hub-managed view of docs-hub itself. We dogfood our own
-> convention: this CLI's design lives in its own `.docs-hub/` directory in
+> This is the specshub-managed view of specshub itself. We dogfood our own
+> convention: this CLI's design lives in its own `.specshub/` directory in
 > in-repo mode.
 
 ## What lives here
 
 | File / dir | Purpose |
 |------------|---------|
-| [`metadata.json`](metadata.json) | docs-hub's own metadata (mode=in-repo, project=docs-hub) |
+| [`metadata.json`](metadata.json) | specshub's own metadata (mode=in-repo, project=specshub) |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Comprehensive design reference — file layouts, schemas, CLI surface, skills, install mechanism |
 | [`decisions/`](decisions/) | ADRs for load-bearing architectural decisions |
 
@@ -22,15 +22,15 @@ For agents working on this codebase:
 4. **`decisions/0003-delegate-install-to-vercel-labs-skills.md`** — why install is delegated
 5. **`decisions/0004-remove-teacher-breadcrumb.md`** — why no user-level teacher snippet
 
-For users wanting to USE docs-hub, see the project [`README.md`](../README.md)
+For users wanting to USE specshub, see the project [`README.md`](../README.md)
 at the repo root.
 
 ## Why this is here
 
-docs-hub manages AI agent docs for code repos. It would be strange not to use
+specshub manages AI agent docs for code repos. It would be strange not to use
 its own convention on its own repo. So:
 
-- `mode: "in-repo"` — these docs are part of the docs-hub repo's own git
+- `mode: "in-repo"` — these docs are part of the specshub repo's own git
   history
 - No `specs/`, `.specify/`, or per-feature SDD artifacts yet (the project is
   small enough that ADRs are the right granularity)
@@ -50,5 +50,5 @@ be created on demand by the first `/constitution` invocation.
 
 ## Commit hygiene
 
-This is mode=in-repo, so all docs commits go into the docs-hub repo itself.
+This is mode=in-repo, so all docs commits go into the specshub repo itself.
 Standard git workflow; no two-repo dance.

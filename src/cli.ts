@@ -11,17 +11,17 @@ import { logger } from "./logger.js";
 const program = new Command();
 
 program
-  .name("docs-hub")
+  .name("specshub")
   .description("Per-context AI agent docs hubs with spec-driven workflow skills")
-  .version("0.0.1");
+  .version("0.0.2");
 
 // ─── init ──────────────────────────────────────────────────────────────────
 program
   .command("init")
-  .description("Initialize docs-hub for this code repo (in-repo or external hub)")
-  .option("--in-repo", "scenario 1: scaffold docs inside this code repo's .docs-hub/")
+  .description("Initialize specshub for this code repo (in-repo or external hub)")
+  .option("--in-repo", "scenario 1: scaffold docs inside this code repo's .specshub/")
   .option("--external", "scenario 2: create a sibling external hub and link this repo as its first project")
-  .option("--name <name>", "external mode: hub name (default <repo-name>-docs-hub)")
+  .option("--name <name>", "external mode: hub name (default <repo-name>-specshub)")
   .option("-d, --dir <path>", "external mode: hub directory (default sibling of code repo)")
   .option("--private", "external mode: create as private GitHub repo (requires gh)")
   .option("--public", "external mode: create as public GitHub repo (requires gh)")
@@ -30,7 +30,7 @@ program
   .option("--project <name>", "project name (default: basename of code repo)")
   .option(
     "--no-suggest",
-    "external mode: don't prompt to append `-docs-hub` to the hub name (e.g. accept `my-team` instead of suggesting `my-team-docs-hub`)",
+    "external mode: don't prompt to append `-specshub` to the hub name (e.g. accept `my-team` instead of suggesting `my-team-specshub`)",
   )
   .option("-y, --yes", "non-interactive: use defaults")
   .action(async (opts) => {
@@ -51,7 +51,7 @@ program
 // ─── link ──────────────────────────────────────────────────────────────────
 program
   .command("link")
-  .description("Link this code repo to an existing hub (auto-detects storage based on .docs-hub/ content)")
+  .description("Link this code repo to an existing hub (auto-detects storage based on .specshub/ content)")
   .argument("<hub-path>", "path to the hub root")
   .option("--project <name>", "project name in the hub (default: basename of code repo)")
   .option(
@@ -70,7 +70,7 @@ program
 // ─── unlink ────────────────────────────────────────────────────────────────
 program
   .command("unlink")
-  .description("Remove a docs-hub linkage from this code repo (updates both metadata files)")
+  .description("Remove a specshub linkage from this code repo (updates both metadata files)")
   .option("--hub <path>", "specific hub to unlink from (default: primary hub or the only hub_ref)")
   .option("--delete-hub-side", "for hub-owned slots: also delete <hub>/projects/<project>/ dir")
   .option("-y, --yes", "non-interactive: auto-confirm prompts")

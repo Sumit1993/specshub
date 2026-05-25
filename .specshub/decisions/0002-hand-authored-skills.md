@@ -30,7 +30,7 @@ no "re-pull from upstream" obligation.
 The skill files draw on spec-kit's workflow conventions (their lifecycle, their
 template structures, their phase semantics) as inspiration. We add our own
 path-resolution prologue (mode-aware: in-repo / external / hybrid) and
-docs-hub-specific commit-hygiene rules. Attribution lives in
+specshub-specific commit-hygiene rules. Attribution lives in
 [`ATTRIBUTION.md`](../../ATTRIBUTION.md), in a credit line in
 [`README.md`](../../README.md), and in an HTML comment inside each affected
 SKILL.md.
@@ -42,7 +42,7 @@ SKILL.md.
    The git history of those files IS the audit trail.
 
 2. **We own the words.** The skills carry our voice, our examples, and our
-   docs-hub-specific guidance. Spec-kit's prompts are great but they assume
+   specshub-specific guidance. Spec-kit's prompts are great but they assume
    spec-kit's directory layout; we have a different one. Hand-authoring lets
    us write to our shape natively rather than patching theirs.
 
@@ -76,11 +76,11 @@ SKILL.md.
 ## Concrete shape
 
 ```
-docs-hub/
+specshub/
 ├── plugin/
 │   ├── plugin.json
 │   └── skills/
-│       ├── docs-hub/SKILL.md              # awareness skill (sections A-E)
+│       ├── specshub/SKILL.md              # awareness skill (sections A-E)
 │       ├── constitution/SKILL.md
 │       ├── specify/SKILL.md
 │       ├── clarify/SKILL.md
@@ -91,7 +91,7 @@ docs-hub/
 └── ATTRIBUTION.md                         # spec-kit + vercel-labs credit
 ```
 
-Each SDD skill body starts with the same "Path resolution (added by docs-hub)"
+Each SDD skill body starts with the same "Path resolution (added by specshub)"
 prologue — the only "templated" piece. If a future upstream improvement is
 worth taking, we update each affected SKILL.md manually; that's a 10-minute
 operation, not an automated pipeline.

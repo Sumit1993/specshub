@@ -31,32 +31,3 @@ export async function hasGit(): Promise<boolean> {
   return which("git");
 }
 
-export interface GhCreateOptions {
-  /** e.g. "Sumit1993/my-docs-hub" (owner is required). */
-  fullName: string;
-  /** "Sumit1993/docs-hub-template" — passed to gh's --template flag. */
-  template: string;
-  visibility: "private" | "public";
-  /** Local directory to clone into. */
-  cloneTo: string;
-}
-
-/**
- * Create a new GitHub repo from a template and clone it locally.
- * Equivalent to: `gh repo create <fullName> --template <template> --(private|public) --clone`
- */
-export async function ghCreateFromTemplate(opts: GhCreateOptions): Promise<void> {
-  await run(
-    "gh",
-    [
-      "repo",
-      "create",
-      opts.fullName,
-      "--template",
-      opts.template,
-      `--${opts.visibility}`,
-      "--clone",
-    ],
-    { cwd: opts.cloneTo, throwOnError: true, inherit: true },
-  );
-}

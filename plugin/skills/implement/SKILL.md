@@ -13,16 +13,16 @@ disable-model-invocation: true
 
 # /implement — execute tasks for a feature
 
-## Path resolution (added by docs-hub)
+## Path resolution (added by specshub)
 
 Before reading any file referenced as `.specify/...`, `specs/...`, or similar
 relative path in this skill, resolve the docs root for the current repo:
 
-1. Find the nearest `.docs-hub/metadata.json` walking up from your current dir.
+1. Find the nearest `.specshub/metadata.json` walking up from your current dir.
 2. Parse it. Note `mode`, `project`, `hub_path`.
 3. Compute docs root:
-   - `mode == "in-repo"` → docs-root = `<code-repo>/.docs-hub/`
-   - `mode == "external"` → docs-root = `<hub_path>/projects/<project>/.docs-hub/`
+   - `mode == "in-repo"` → docs-root = `<code-repo>/.specshub/`
+   - `mode == "external"` → docs-root = `<hub_path>/projects/<project>/.specshub/`
 4. Treat `specs/<feature>/` references as `<docs-root>/specs/<feature>/`.
 5. Suggest commits, never auto-execute.
 
@@ -76,7 +76,7 @@ After `/tasks` (and ideally `/analyze`). Before any code work for the feature.
    commit per task — that's too noisy. Don't suggest one giant commit for
    everything — that's too coarse.
 
-   For each suggested commit, separate code repo writes from docs-hub writes:
+   For each suggested commit, separate code repo writes from specshub writes:
 
    ```bash
    # code changes (always to code repo):
@@ -85,11 +85,11 @@ After `/tasks` (and ideally `/analyze`). Before any code work for the feature.
 
    # tasks.md tick-off (goes to whichever repo has the docs root):
    # If mode=in-repo:
-   git -C <code_repo_path> add .docs-hub/specs/<NNN>-<name>/tasks.md
+   git -C <code_repo_path> add .specshub/specs/<NNN>-<name>/tasks.md
    git -C <code_repo_path> commit -m "tasks: tick off <task IDs>"
 
    # If mode=external:
-   git -C <hub_path> add projects/<project>/.docs-hub/specs/<NNN>-<name>/tasks.md
+   git -C <hub_path> add projects/<project>/.specshub/specs/<NNN>-<name>/tasks.md
    git -C <hub_path> commit -m "tasks: tick off <task IDs>"
    ```
 
@@ -98,7 +98,7 @@ After `/tasks` (and ideally `/analyze`). Before any code work for the feature.
 
 9. **When all tasks for the feature are done**, propose:
    - Updating `<docs-root>/MAP.md` (hub level) if a new significant capability emerged
-   - Authoring an ADR in `<docs-root>/decisions/` for any non-obvious technical decisions made during implementation (use the `docs-hub` skill's proactive-suggestion guidance)
+   - Authoring an ADR in `<docs-root>/decisions/` for any non-obvious technical decisions made during implementation (use the `specshub` skill's proactive-suggestion guidance)
 
 ## Anti-patterns
 

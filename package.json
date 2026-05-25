@@ -1,10 +1,10 @@
 {
-  "name": "docs-hub",
-  "version": "0.0.1",
-  "description": "CLI for creating and managing per-context AI agent docs hubs. Wraps the docs-hub-template pattern with init, link, verify, unlink, list, status, doctor.",
+  "name": "specshub",
+  "version": "0.0.2",
+  "description": "specshub — per-context AI agent docs hubs with spec-driven workflow skills. CLI: init, link, verify, unlink, list, status, doctor.",
   "type": "module",
   "bin": {
-    "docs-hub": "dist/cli.js"
+    "specshub": "dist/cli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -41,13 +41,13 @@
   ],
   "author": "Sumit Patel",
   "license": "MIT",
-  "homepage": "https://github.com/Sumit1993/docs-hub",
+  "homepage": "https://github.com/Sumit1993/specshub",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Sumit1993/docs-hub.git"
+    "url": "git+https://github.com/Sumit1993/specshub.git"
   },
   "bugs": {
-    "url": "https://github.com/Sumit1993/docs-hub/issues"
+    "url": "https://github.com/Sumit1993/specshub/issues"
   },
   "dependencies": {
     "@inquirer/prompts": "^7.2.1",

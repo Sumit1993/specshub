@@ -25,7 +25,7 @@ export type InitVisibility = "private" | "public" | "local";
 export interface InitOptions {
   /** Which scenario. If absent and interactive, prompts. */
   mode?: InitMode;
-  /** External mode: hub name (default `<repo>-docs-hub`). */
+  /** External mode: hub name (default `<repo>-specshub`). */
   name?: string;
   /** External mode: hub directory (default sibling to code repo). */
   dir?: string;
@@ -35,7 +35,7 @@ export interface InitOptions {
   owner?: string;
   /** Project name (default: basename of code repo). */
   project?: string;
-  /** Skip the `-docs-hub` suffix suggestion for external hub names. */
+  /** Skip the `-specshub` suffix suggestion for external hub names. */
   noSuggest?: boolean;
   /** Non-interactive: fail rather than prompt. */
   yes?: boolean;
@@ -51,7 +51,7 @@ export interface InitResult {
   hubRepoUrl: string | null;
 }
 
-const SUFFIX = "-docs-hub";
+const SUFFIX = "-specshub";
 
 export async function init(opts: InitOptions = {}): Promise<InitResult> {
   const codeRepo = absolutePath(opts.codeRepo ?? process.cwd());
@@ -65,8 +65,8 @@ export async function init(opts: InitOptions = {}): Promise<InitResult> {
   if (await exists(metadataPath(codeRepo))) {
     throw new Error(
       `${metadataPath(codeRepo)} already exists. ` +
-        "This code repo is already docs-hub-initialized. " +
-        "Run `docs-hub link <hub>` to add a hub reference, or remove .docs-hub/metadata.json first.",
+        "This code repo is already specshub-initialized. " +
+        "Run `specshub link <hub>` to add a hub reference, or remove .specshub/metadata.json first.",
     );
   }
 
@@ -143,7 +143,7 @@ async function resolveVisibility(opts: InitOptions): Promise<InitVisibility> {
 
 async function resolveHubName(codeRepo: string, opts: InitOptions): Promise<string> {
   if (opts.name) return opts.name;
-  const defaultName = `${basename(codeRepo)}-docs-hub`;
+  const defaultName = `${basename(codeRepo)}-specshub`;
   if (opts.yes) return defaultName;
   const raw = await input({
     message: "Hub name?",
@@ -187,13 +187,13 @@ async function initInRepo(codeRepo: string, project: string): Promise<void> {
   logger.success(`Wrote ${metadataPath(codeRepo)}`);
 
   logger.blank();
-  logger.success(`Initialized in-repo docs-hub for project '${project}'.`);
+  logger.success(`Initialized in-repo specshub for project '${project}'.`);
   logger.detail(`Docs root: ${docsRoot}`);
   logger.detail(`Files like specs/, decisions/, .specify/ are created on demand by SDD skills.`);
   logger.blank();
-  logger.info("Suggested commit (run yourself; docs-hub never auto-commits):");
-  logger.detail(`  git -C ${codeRepo} add .docs-hub`);
-  logger.detail(`  git -C ${codeRepo} commit -m "feat: docs-hub init (in-repo, project=${project})"`);
+  logger.info("Suggested commit (run yourself; specshub never auto-commits):");
+  logger.detail(`  git -C ${codeRepo} add .specshub`);
+  logger.detail(`  git -C ${codeRepo} commit -m "feat: specshub init (in-repo, project=${project})"`);
 }
 
 // ─── external init ───────────────────────────────────────────────────────
@@ -275,7 +275,7 @@ async function initExternal(args: ExternalArgs): Promise<string> {
 
   // 4. Create the empty hub-owned project stub (just the dir; no metadata.json per project)
   await mkdir(hubProjectDocsRoot(hubDir, project), { recursive: true });
-  logger.detail(`Created empty project stub: projects/${project}/.docs-hub/`);
+  logger.detail(`Created empty project stub: projects/${project}/.specshub/`);
 
   // 5. Write the code repo's metadata pointing at the hub
   const codeMeta: DocsHubMetadata = {
@@ -294,9 +294,9 @@ async function initExternal(args: ExternalArgs): Promise<string> {
   logger.blank();
   logger.success(`Initialized external hub '${name}' with first project '${project}'.`);
   logger.blank();
-  logger.info("Suggested commits (run yourself; docs-hub never auto-commits):");
-  logger.detail(`  git -C ${codeRepo} add .docs-hub`);
-  logger.detail(`  git -C ${codeRepo} commit -m "feat: docs-hub init (external, hub=${name})"`);
+  logger.info("Suggested commits (run yourself; specshub never auto-commits):");
+  logger.detail(`  git -C ${codeRepo} add .specshub`);
+  logger.detail(`  git -C ${codeRepo} commit -m "feat: specshub init (external, hub=${name})"`);
   logger.blank();
   logger.detail(`  git -C ${hubDir} add .`);
   logger.detail(`  git -C ${hubDir} commit -m "feat: initial hub scaffolding for '${name}'"`);
